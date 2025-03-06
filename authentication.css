@@ -1,0 +1,43 @@
+.parent {
+    display: grid;
+    place-items: center;
+    height: 100vh;
+}
+
+.authentication-container {
+    height: 50%;
+    
+}
+
+input {
+    border: none;
+    border-radius: 50px;
+    width: 300px;
+    height: 50px;
+    font-size: large;
+    padding: 0px 20px;
+}
+
+p {
+    margin-left: 20px;
+    font-size: 20px;
+    color: red;
+}
+
+button {
+    border: none;
+    border-radius: 50px;
+    width: 340px;
+    height: 50px;
+    font-size: large; 
+    color: teal;
+    background-color: white;
+    line-height: 50px;
+}
+
+i{
+    background-color: white;
+    color: teal;
+    padding: 15px 15px;
+    border-radius: 50px;
+}

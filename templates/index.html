@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlahBlahLand</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='general_css.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+    <script src="https://kit.fontawesome.com/8d36bf267e.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div id="chat-container">
+      <div id="users-list">
+        <div id="users-header">
+          <h3>Contacts</h3>
+          <button id="add-contact-btn" title="Add Contact"><i class="fa-solid fa-plus"></i></button>
+        </div>
+        <ul id="users"></ul>
+      </div>
+      <div id="chat-box">
+        <div id="chat-header">
+          <h3 id="current-contact-name">Select a contact</h3>
+          <button id="logout-btn" title="Logout"><i class="fa-solid fa-sign-out-alt"></i></button>
+        </div>
+        <div id="messages"></div>
+        <div id="input-container">
+          <input type="text" id="message-input" placeholder="Type a message..." disabled />
+          <button id="send-button" disabled>Send</button>
+        </div>
+      </div>
+    </div>
+  <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+</html>
