@@ -188,14 +188,25 @@ def add_contact():
         return jsonify({"success": False, "message": "Cannot add yourself as a contact"}), 400
     
     try:
-        # Add the contact
+        # Add the contact for current user
         cursor.execute("INSERT INTO contacts (user_id, contact_id) VALUES (?, ?)", (user_id, contact_id))
+        
+        # Add reciprocal contact (bidirectional relationship)
+        cursor.execute("INSERT INTO contacts (user_id, contact_id) VALUES (?, ?)", (contact_id, user_id))
+        
         conn.commit()
         conn.close()
         return jsonify({"success": True, "message": "Contact added"})
     except sqlite3.IntegrityError:
+        # If the contact already exists for one direction but not the other, add the missing one
+        try:
+            cursor.execute("INSERT INTO contacts (user_id, contact_id) VALUES (?, ?)", (contact_id, user_id))
+            conn.commit()
+        except sqlite3.IntegrityError:
+            # Both directions already existed
+            pass
         conn.close()
-        return jsonify({"success": False, "message": "Contact already exists"}), 409
+        return jsonify({"success": True, "message": "Contact added"})
 
 @app.route('/api/messages/<int:contact_id>', methods=['GET'])
 def get_messages(contact_id):

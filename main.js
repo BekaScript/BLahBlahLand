@@ -13,6 +13,7 @@ const currentContactName = document.getElementById("current-contact-name");
 let currentUser = null;
 let currentContact = null;
 let contacts = [];
+let messagePollingInterval = null;
 
 // Initialize the application
 async function init() {
@@ -100,12 +101,36 @@ async function handleContactSelection(contactElement) {
   
   // Load messages for this contact
   await loadMessages(contactId);
+  
+  // Setup real-time message polling
+  setupMessagePolling(contactId);
+}
+
+// Setup polling for real-time messaging
+function setupMessagePolling(contactId) {
+  // Clear any existing polling
+  if (messagePollingInterval) {
+    clearInterval(messagePollingInterval);
+  }
+  
+  // Set up new polling interval (every 1 second)
+  messagePollingInterval = setInterval(() => {
+    if (currentContact && currentContact.id === contactId) {
+      loadMessages(contactId, true);
+    } else {
+      // If user switched to a different contact, clear this interval
+      clearInterval(messagePollingInterval);
+    }
+  }, 1000);
 }
 
 // Load messages for a specific contact
-async function loadMessages(contactId) {
+async function loadMessages(contactId, isPolling = false) {
   try {
-    messagesDiv.innerHTML = '<div class="loading-messages">Loading messages...</div>';
+    // Only show loading indicator for initial load, not for polling updates
+    if (!isPolling) {
+      messagesDiv.innerHTML = '<div class="loading-messages">Loading messages...</div>';
+    }
     
     const response = await fetch(`/api/messages/${contactId}`);
     const data = await response.json();
@@ -113,11 +138,15 @@ async function loadMessages(contactId) {
     if (data.success) {
       renderMessages(data.messages);
     } else {
-      messagesDiv.innerHTML = '<div class="error-message">Failed to load messages</div>';
+      if (!isPolling) {
+        messagesDiv.innerHTML = '<div class="error-message">Failed to load messages</div>';
+      }
       console.error('Error loading messages:', data.message);
     }
   } catch (error) {
-    messagesDiv.innerHTML = '<div class="error-message">Failed to load messages</div>';
+    if (!isPolling) {
+      messagesDiv.innerHTML = '<div class="error-message">Failed to load messages</div>';
+    }
     console.error('Error loading messages:', error);
   }
 }
@@ -129,6 +158,9 @@ function renderMessages(messages) {
     return;
   }
   
+  // Save scroll position state
+  const wasAtBottom = isScrolledToBottom();
+  
   messagesDiv.innerHTML = messages.map(msg => {
     const isSentByMe = msg.sender_id === currentUser.id;
     const messageClass = isSentByMe ? 'sent' : 'received';
@@ -137,8 +169,17 @@ function renderMessages(messages) {
     </p>`;
   }).join("");
   
-  // Scroll to the bottom of messages
-  scrollMessagesToBottom();
+  // Only scroll to bottom if we were already at the bottom before new messages came in
+  // or if this is the initial load (no scroll position yet)
+  if (wasAtBottom) {
+    scrollMessagesToBottom();
+  }
+}
+
+// Check if user is scrolled to bottom of messages
+function isScrolledToBottom() {
+  const tolerance = 30; // pixels from bottom to still consider "at bottom"
+  return messagesDiv.scrollHeight - messagesDiv.clientHeight - messagesDiv.scrollTop <= tolerance;
 }
 
 // Send a message
@@ -200,16 +241,14 @@ async function addContact() {
     }
   } catch (error) {
     console.error('Error adding contact:', error);
-    alert('Failed to add contact. Please try again.');
+    alert('Error adding contact. Please try again.');
   }
 }
 
 // Logout function
 async function logout() {
   try {
-    await fetch('/logout', {
-      method: 'POST',
-    });
+    await fetch('/logout', { method: 'POST' });
     window.location.href = '/login';
   } catch (error) {
     console.error('Error logging out:', error);
@@ -218,26 +257,24 @@ async function logout() {
 
 // Scroll to the bottom of messages
 function scrollMessagesToBottom() {
-  setTimeout(() => {
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-  }, 0);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
 // Setup all event listeners
 function setupEventListeners() {
-  // Send button click
-  sendButton.addEventListener("click", sendMessage);
+  // Send message on button click
+  sendButton.addEventListener('click', sendMessage);
   
-  // Enter key press in message input
-  messageInput.addEventListener('keydown', (event) => {
+  // Send message on Enter key
+  messageInput.addEventListener('keydown', event => {
     if (event.key === 'Enter') {
       sendMessage();
     }
   });
   
-  // Add contact button
+  // Add contact on button click
   addContactBtn.addEventListener('click', addContact);
   
-  // Logout button
+  // Logout on button click
   logoutBtn.addEventListener('click', logout);
 }
