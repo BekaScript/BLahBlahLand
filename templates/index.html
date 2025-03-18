@@ -1,35 +1,252 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BlahBlahLand</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='general_css.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
-    <script src="https://kit.fontawesome.com/8d36bf267e.js" crossorigin="anonymous"></script>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BlahBlahLand</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='general_css.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+  <!-- <link rel="stylesheet" href="/main.css"> -->
+
+  <style>
+    /* Chat Icon */
+    #chat-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 35px;
+      height: 35px;
+      background-color: #0D9488;
+      color: white;
+      font-size: 18px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+      margin-right: 10px;
+    }
+
+    /* Positioning inside the chat header */
+    #chat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #chat-header .left {
+      display: flex;
+      align-items: center;
+    }
+
+    /* AI Chat Window Styles */
+    #chat-window {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 350px;
+      height: 100vh;
+      /* Full viewport height */
+      background: white;
+      box-shadow: -2px 0 15px rgba(0, 0, 0, 0.2);
+      display: none;
+      flex-direction: column;
+      z-index: 1000;
+    }
+
+    #chat-window-header {
+      background: #0D9488;
+      color: white;
+      padding: 12px 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+    }
+
+    #ai-chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      height: calc(100vh - 130px);
+      /* Adjust based on header and input container heights */
+    }
+
+    .ai-message,
+    .user-message {
+      max-width: 80%;
+      padding: 10px 12px;
+      border-radius: 15px;
+      margin-bottom: 5px;
+    }
+
+    .ai-message {
+      align-self: flex-start;
+      background-color: #f0f0f0;
+    }
+
+    .user-message {
+      align-self: flex-end;
+      background-color: #0D9488;
+      color: white;
+    }
+
+    .ai-welcome-message {
+      background-color: #f5f5f5;
+      border-left: 3px solid #0D9488;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 15px;
+    }
+
+    #ai-input-container {
+      display: flex;
+      padding: 10px;
+      border-top: 1px solid #eee;
+      background-color: white;
+    }
+
+    #ai-message-input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      resize: none;
+      height: 40px;
+      margin-right: 10px;
+    }
+
+    #ai-send-button {
+      background-color: #0D9488;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 0 15px;
+      cursor: pointer;
+      height: 40px;
+    }
+
+    #ai-send-button:hover {
+      background-color: #0b7c72;
+    }
+
+    /* AI Help Button */
+    #ai-help-button {
+      background-color: #f0f0f0;
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      margin-right: 8px;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #ai-help-button:hover {
+      background-color: #e0e0e0;
+    }
+
+    .ai-message-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 5px;
+    }
+
+    .use-ai-message {
+      background-color: #0D9488;
+      color: white;
+      border: none;
+      border-radius: 15px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .use-ai-message:hover {
+      background-color: #0b7c72;
+    }
+  </style>
 </head>
+
 <body>
-    <div id="chat-container">
-      <div id="users-list">
-        <div id="users-header">
-          <h3>Contacts</h3>
-          <button id="add-contact-btn" title="Add Contact"><i class="fa-solid fa-plus"></i></button>
-        </div>
-        <ul id="users"></ul>
+
+  <div id="chat-container">
+    <div id="users-list">
+      <div id="users-header">
+        <h3>Contacts</h3>
+        <button style="font-size: large;" id="add-contact-btn" title="Add Contact">+</button>
       </div>
-      <div id="chat-box">
-        <div id="chat-header">
+      <ul id="users"></ul>
+    </div>
+
+    <div id="chat-box">
+      <div id="chat-header">
+        <div class="left">
+          <div id="chat-icon" onclick="toggleChat()">💬</div>
           <h3 id="current-contact-name">Select a contact</h3>
-          <button id="logout-btn" title="Logout"><i class="fa-solid fa-sign-out-alt"></i></button>
         </div>
-        <div id="messages"></div>
-        <div id="input-container">
-          <input type="text" id="message-input" placeholder="Type a message..." disabled />
-          <button id="send-button" disabled>Send</button>
-        </div>
+        <button style="width: fit-content;" id="logout-btn" title="Logout">Logout</button>
+      </div>
+      <div id="messages"></div>
+      <div id="input-container">
+        <input type="text" id="message-input" placeholder="Type a message..." disabled />
+        <button id="send-button" disabled>Send</button>
       </div>
     </div>
+  </div>
+
+  <!-- Chat Window (Hidden Initially) -->
+  <div id="chat-window">
+    <div id="chat-window-header">
+      <span>AI Message Assistant</span>
+      <button onclick="toggleChat()">✖</button>
+    </div>
+    <div id="ai-chat-messages">
+      <div class="ai-welcome-message">
+        <p>Hello! I'm your AI assistant. I can help you write messages, suggest improvements, or complete your thoughts.
+          What would you like help with today?</p>
+      </div>
+    </div>
+    <div id="ai-input-container">
+      <textarea id="ai-message-input" placeholder="Ask me to help with a message..."></textarea>
+      <button id="ai-send-button">Send</button>
+    </div>
+  </div>
+
+  <!-- Add Contact Modal -->
+  <div id="add-contact-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h2>Add New Contact</h2>
+      <div class="modal-form">
+        <input type="text" id="contact-identifier" placeholder="Username or Email">
+        <input type="text" id="contact-display-name" placeholder="Display Name (optional)">
+        <p id="modal-error-msg"></p>
+        <button id="submit-contact">Add Contact</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global toggle chat function
+    function toggleChat() {
+      const chatWindow = document.getElementById("chat-window");
+      chatWindow.style.display = chatWindow.style.display === "none" || chatWindow.style.display === "" ? "flex" : "none";
+    }
+
+    // No need for additional event listeners here
+  </script>
+
+
+  <!-- <script src="/main.js"></script> -->
   <script src="{{ url_for('static', filename='main.js') }}"></script>
+
 </body>
+
 </html>

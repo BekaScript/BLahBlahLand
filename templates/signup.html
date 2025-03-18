@@ -10,10 +10,12 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='authentication.css') }}">
 </head>
 
-<body>
+<body>x
     <div class="parent">
         <div class="authentication-container">
             <input type="text" placeholder="Username" id="username">
+            <br><br>
+            <input type="email" id="email" name="email" placeholder="Email" required>
             <br><br>
             <input type="password" id="pw_input1" placeholder="Password">
             <br><br>
@@ -27,48 +29,67 @@
     </div>
 
     <script>
+        function isValidEmail(email) {
+            // Regular expression for email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
         function signup() {
             const username = document.getElementById("username").value;
+            const email = document.getElementById("email").value;
             const pw1 = document.getElementById("pw_input1").value;
             const pw2 = document.getElementById("pw_input2").value;
             const errorMsg = document.getElementById('error_msg');
-            
-            if (!username || !pw1 || !pw2) {
+
+            // Clear previous error message
+            errorMsg.textContent = "";
+
+            // Basic validation
+            if (!username || !email || !pw1 || !pw2) {
                 errorMsg.textContent = "Input fields cannot be empty";
                 return;
             }
-            
+
+            // Email validation
+            if (!isValidEmail(email)) {
+                errorMsg.textContent = "Please enter a valid email address";
+                return;
+            }
+
+            // Password match validation
             if (pw1 !== pw2) {
                 errorMsg.textContent = "Passwords do not match";
                 return;
             }
-            
+
+
             fetch('/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ 
-                    username: username, 
-                    password: pw1 
+                body: JSON.stringify({
+                    username: username,
+                    email: email,
+                    password: pw1
                 }),
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    window.location.href = '/';
-                } else {
-                    errorMsg.textContent = data.message || "Registration failed";
-                }
-            })
-            .catch(error => {
-                errorMsg.textContent = "An error occurred. Please try again.";
-                console.error('Error:', error);
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = '/';
+                    } else {
+                        errorMsg.textContent = data.message || "Registration failed";
+                    }
+                })
+                .catch(error => {
+                    errorMsg.textContent = "An error occurred. Please try again.";
+                    console.error('Error:', error);
+                });
         }
-        
         // Add event listener for Enter key
-        document.getElementById("pw_input2").addEventListener("keydown", function(event) {
+        document.getElementById("pw_input2").addEventListener("keydown", function (event) {
             if (event.key === "Enter") {
                 signup();
             }

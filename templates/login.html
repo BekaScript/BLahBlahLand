@@ -11,7 +11,7 @@
 <body>
     <div class="parent">
         <div class="authentication-container">
-            <input type="text" placeholder="Username" id="username">
+            <input type="text" placeholder="Username or email" id="username">
             <br><br> 
             <input type="password" placeholder="Password" id="password">
             <br>
@@ -23,36 +23,39 @@
     </div>
     <script>
         function login() {
-            const username = document.getElementById("username").value;
-            const password = document.getElementById("password").value;
-            const errorMsg = document.getElementById('error_msg');
-            
-            if (!username || !password) {
-                errorMsg.textContent = "Username and password are required";
-                return;
-            }
-            
-            fetch('/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ username, password }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    window.location.href = '/';
-                } else {
-                    errorMsg.textContent = data.message || "Username or password is incorrect";
-                }
-            })
-            .catch(error => {
-                errorMsg.textContent = "An error occurred. Please try again.";
-                console.error('Error:', error);
-            });
+    const usernameOrEmail = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+    const errorMsg = document.getElementById('error_msg');
+    
+    if (!usernameOrEmail || !password) {
+        errorMsg.textContent = "Username/Email and password are required";
+        return;
+    }
+    
+    fetch('/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+            usernameOrEmail: usernameOrEmail, 
+            password: password 
+        }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = '/';
+        } else {
+            errorMsg.textContent = data.message || "Username/Email or password is incorrect";
         }
-        
+    })
+    .catch(error => {
+        errorMsg.textContent = "An error occurred. Please try again.";
+        console.error('Error:', error);
+    });
+}
+     
         // Add event listener for Enter key
         document.getElementById("password").addEventListener("keydown", function(event) {
             if (event.key === "Enter") {
